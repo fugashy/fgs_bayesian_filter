@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package>
+  <name>fgs_bayesian</name>
+  <version>0.0.0</version>
+  <description>The fgs_bayesian package</description>
+
+  <maintainer email="fugasy@icloud.com">fugashy</maintainer>
+
+  <license>MIT</license>
+
+  <url type="website">https://github.com/fugashy</url>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>fgs_opt_data_storage</build_depend>
+  <run_depend>fgs_opt_data_storage</run_depend>
+
+</package>
