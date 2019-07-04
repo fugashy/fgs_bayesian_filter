@@ -31,7 +31,7 @@ def ekf_sample(args=None):
     motion_model = motion_models.Circle2D(DT)
     command_model = commands.VelocityAndYawConst(VEL_POS, VEL_YAW)
     obs_model = observation_models.GPSObservation()
-    data = noise_models.SampleNoiseExposure(motion_model, obs_model)
+    noise_model = noise_models.SampleNoiseExposure()
     ekf = extended_kalman_filter.ExtendedKalmanFilter(motion_model, obs_model)
     plot = plotter.EKFHistory()
 
@@ -39,11 +39,20 @@ def ekf_sample(args=None):
         while time < SIM_TIME:
             time += DT
 
+            # 操作を与えて真値を更新
             u = command_model.command()
+            x_gt = motion_model.calc_next_motion(x_gt, u)
 
-            x_gt, z_noised, x_noised, u_noised = data.expose(
-                x_gt, x_noised, u)
+            # そこで観測
+            z = obs_model.observe_at(x_gt)
 
+            # ノイズを与える
+            u_noised, z_noised = noise_model.expose(u, z)
+
+            # ノイズ操作を用いて運動モデルを更新する(こいつはこれの繰り返し)
+            x_noised = motion_model.calc_next_motion(x_noised, u_noised)
+
+            # EKF
             x_est, x_cov_est = ekf.bayesian_update(u_noised, z_noised)
 
             plot.plot(x_gt, x_est, x_noised, z_noised, x_cov_est)
