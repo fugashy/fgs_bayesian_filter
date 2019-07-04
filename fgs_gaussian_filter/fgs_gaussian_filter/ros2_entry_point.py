@@ -35,14 +35,17 @@ def ekf_sample(args=None):
     ekf = extended_kalman_filter.ExtendedKalmanFilter(motion_model, obs_model)
     plot = plotter.EKFHistory()
 
-    while time < SIM_TIME:
-        time += DT
+    try:
+        while time < SIM_TIME:
+            time += DT
 
-        u = command_model.command()
+            u = command_model.command()
 
-        x_gt, z_noised, x_noised, u_noised = data.expose(
-            x_gt, x_noised, u)
+            x_gt, z_noised, x_noised, u_noised = data.expose(
+                x_gt, x_noised, u)
 
-        x_est, x_cov_est = ekf.bayesian_update(u_noised, z_noised)
+            x_est, x_cov_est = ekf.bayesian_update(u_noised, z_noised)
 
-        plot.plot(x_gt, x_est, x_noised, z_noised, x_cov_est)
+            plot.plot(x_gt, x_est, x_noised, z_noised, x_cov_est)
+    except KeyboardInterrupt:
+        print('Interrupted by user')
