@@ -2,7 +2,7 @@
 import numpy as np
 
 
-class VelocityAndYawConst(object):
+class VelocityAndYawConst():
     def __init__(self, v, yaw):
         u"""
         xyの速度は同じ
@@ -18,4 +18,3 @@ class VelocityAndYawConst(object):
 
     def command(self):
         return self._command
-

@@ -24,10 +24,10 @@ class Circle2D(object):
                 [1.0,                         0.0]
             ])
 
-        dx_dyaw = lambda x, y: -u[0, 0] * self.dt * math.sin(x[2, 0])
-        dx_dv = lambda x, y: self.dt * math.cos(x[2, 0])
-        dy_dyaw = lambda x, y: u[0, 0] * self.dt * math.cos(x[2, 0])
-        dy_dv = lambda x, y: self.dt * math.sin(x[2, 0])
+        dx_dyaw = lambda x, u: -u[0, 0] * self.dt * math.sin(x[2, 0])
+        dx_dv = lambda x, u: self.dt * math.cos(x[2, 0])
+        dy_dyaw = lambda x, u: u[0, 0] * self.dt * math.cos(x[2, 0])
+        dy_dv = lambda x, u: self.dt * math.sin(x[2, 0])
         self.state_jacob_mat = lambda x, u: np.array(
             [
                 [1.0, 0.0, dx_dyaw(x, u), dx_dv(x, u)],
@@ -56,12 +56,17 @@ class Circle2D(object):
         u"""
         設定時間先近傍の振る舞いを近似したヤコビ行列を計算する
         """
-        return self.state_jakob_mat(x_pred, u_t)
+        return self.state_jacob_mat(x_pred, u_t)
 
 
-class GPSObservation(object):
+class GPSObservation():
     def __init__(self):
-        self.observation_mat = lambda x: np.array(
+        u"""
+        観測行列の定義を行う.
+
+        状態ベクトルから，観測に対応する部分を取り出す役割をする
+        """
+        self.observation_mat = lambda: np.array(
             [
                 [1.0, 0.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0, 0.0]
@@ -74,3 +79,6 @@ class GPSObservation(object):
             ])
 
         self.cov = np.diag([1.0, 1.0])**2
+
+    def observe_at(self, x_t):
+        return self.observation_mat() @ x_t

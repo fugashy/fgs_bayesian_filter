@@ -11,6 +11,7 @@ DT = 0.1
 VEL_POS = 1.0
 VEL_YAW = 0.1
 
+
 def ekf_sample(args=None):
     print('ekf start !')
 
@@ -39,7 +40,9 @@ def ekf_sample(args=None):
         state_groundtruth, obs_noised, state_noised, command_noised = data.noise_expose(
                 state_groundtruth, state_noised, command)
 
-        state_estimate, state_covariance = ekf.bayesian_update(
+        state_estimated, state_covariance = ekf.bayesian_update(
                 command_noised, obs_noised)
 
-        plot.plot(state_groundtruth, state_estimated, state_dead_noised, obs_noised)
+        plot.plot(
+            state_groundtruth, state_estimated,
+            state_noised, obs_noised, state_covariance)

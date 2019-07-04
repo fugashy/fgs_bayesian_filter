@@ -12,7 +12,7 @@ class EKFHistory(object):
         self.hxDR = np.zeros((4, 1))
         self.hz = np.zeros((2, 1))
 
-    def plot(self, xTrue, xEst, xDR, z):
+    def plot(self, xTrue, xEst, xDR, z, PEst):
         self.hxTrue = np.hstack((self.hxTrue, xTrue))
         self.hxEst = np.hstack((self.hxEst, xEst))
         self.hxDR = np.hstack((self.hxDR, xDR))
@@ -26,12 +26,12 @@ class EKFHistory(object):
                  self.hxDR[1, :].flatten(), "-k")
         plt.plot(self.hxEst[0, :].flatten(),
                  self.hxEst[1, :].flatten(), "-r")
-        plot_covariance_ellipse(xEst, PEst)
+        self.plot_covariance_ellipse(xEst, PEst)
         plt.axis("equal")
         plt.grid(True)
         plt.pause(0.001)
 
-    def plot_covariance_ellipse(xEst, PEst):  # pragma: no cover
+    def plot_covariance_ellipse(self, xEst, PEst):  # pragma: no cover
         Pxy = PEst[0:2, 0:2]
         eigval, eigvec = np.linalg.eig(Pxy)
 
