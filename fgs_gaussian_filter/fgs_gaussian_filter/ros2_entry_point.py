@@ -3,8 +3,12 @@ import numpy as np
 
 
 from fgs_gaussian_filter import (
-    commands, noise_models, extended_kalman_filter,
-    observation_models, models, plotter
+    commands,
+    motion_models,
+    observation_models,
+    noise_models,
+    extended_kalman_filter,
+    plotter
 )
 
 SIM_TIME = 120.0
@@ -24,7 +28,7 @@ def ekf_sample(args=None):
     x_cov_est = np.eye(4)
     x_noised = np.zeros((4, 1))  # 放っておくとどうなるか
 
-    motion_model = models.Circle2D(DT)
+    motion_model = motion_models.Circle2D(DT)
     command_model = commands.VelocityAndYawConst(VEL_POS, VEL_YAW)
     obs_model = observation_models.GPSObservation()
     data = noise_models.SampleNoiseExposure(motion_model, obs_model)
