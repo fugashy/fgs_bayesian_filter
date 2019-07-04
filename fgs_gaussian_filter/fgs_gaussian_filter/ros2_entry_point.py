@@ -1,15 +1,23 @@
+#!/usr/local/bin/python3
 # -*- coding: utf-8 -*-
 import numpy as np
 
-
-from fgs_gaussian_filter import (
-    commands,
-    motion_models,
-    observation_models,
-    noise_models,
-    extended_kalman_filter,
-    plotter
-)
+if __name__ == '__main__':
+    import commands
+    import motion_models
+    import observation_models
+    import noise_models
+    import extended_kalman_filter
+    import plotter
+else:
+    from fgs_gaussian_filter import (
+        commands,
+        motion_models,
+        observation_models,
+        noise_models,
+        extended_kalman_filter,
+        plotter
+    )
 
 SIM_TIME = 120.0
 DT = 0.1
@@ -58,3 +66,7 @@ def ekf_sample(args=None):
             plot.plot(x_gt, x_est, x_noised, z_noised, x_cov_est)
     except KeyboardInterrupt:
         print('Interrupted by user')
+
+
+if __name__ == '__main__':
+    ekf_sample()
