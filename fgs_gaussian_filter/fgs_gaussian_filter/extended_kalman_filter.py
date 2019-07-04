@@ -23,12 +23,12 @@ class ExtendedKalmanFilter():
         cov_pre = deepcopy(self.cov_est)
 
         # 予測predict
-        x_pred = self.motion_model.calc_next_dt_motion(x_pre, u)
-        x_jacob = self.motion_model.calc_jacob_of_state(x_pred, u)
+        x_pred = self.motion_model.calc_next_motion(x_pre, u)
+        x_jacob = self.motion_model.calc_motion_jacob(x_pred, u)
         cov_pred = x_jacob @ cov_pre @ x_jacob.T + self.motion_model.cov
 
         # 更新update
-        z_jacob = self.obs_model.observation_jacob_mat()
+        z_jacob = self.obs_model.calc_jacob(x_pred)
         z_pred = self.obs_model.observe_at(x_pred)
         y = z - z_pred
         S = z_jacob @ cov_pred @ z_jacob.T + self.obs_model.cov

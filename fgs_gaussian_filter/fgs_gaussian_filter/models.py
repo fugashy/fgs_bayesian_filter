@@ -1,42 +1,53 @@
 # -*- coding: utf-8 -*-
-import math
+from math import cos, sin
 
 import numpy as np
 
 
 class Circle2D(object):
+    u"""xy平面上の円運動モデル
+
+    与えられた状態・操作からその時どの状態になるかを計算する
+    """
+
     def __init__(self, dt):
-        self.dt = dt
-        self.state_mat = lambda: np.array(
+        u"""運動モデルとそのヤコビアン，分散を用意"""
+        self._dt = dt
+        # 状態を取り出すための行列
+        # 特に操作を加えなかった場合の成分を取り出すために使う
+        f_mat = np.array(
             [
                 [1.0, 0.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0, 0.0],
                 [0.0, 0.0, 1.0, 0.0],
                 [0.0, 0.0, 0.0, 0.0]
             ])
+        self._extract_static_x = lambda x: f_mat @ x
 
-        # x[2, 0] = yaw
-        self.command_mat = lambda x: np.array(
+        # 操作を加えた場合に状態へ与える影響を取り出す行列
+        self._extract_command_x = lambda x, u: np.array(
             [
-                [self.dt * math.cos(x[2, 0]), 0.0       ],
-                [self.dt * math.sin(x[2, 0]), 0.0       ],
-                [0.0,                         self.dt],
-                [1.0,                         0.0]
-            ])
+                [cos(x[2, 0]) * self._dt, 0.0],
+                [sin(x[2, 0]) * self._dt, 0.0],
+                [0.0, self._dt],
+                [1.0, 0.0]
+            ]) @ u
 
-        dx_dyaw = lambda x, u: -u[0, 0] * self.dt * math.sin(x[2, 0])
-        dx_dv = lambda x, u: self.dt * math.cos(x[2, 0])
-        dy_dyaw = lambda x, u: u[0, 0] * self.dt * math.cos(x[2, 0])
-        dy_dv = lambda x, u: self.dt * math.sin(x[2, 0])
-        self.state_jacob_mat = lambda x, u: np.array(
+        # 運動モデルのヤコビアン
+        dx_dyaw = lambda x, u: -u[0, 0] * sin(x[2, 0]) * self._dt
+        dx_dv = lambda x, u: cos(x[2, 0]) * self._dt
+        dy_dyaw = lambda x, u: u[0, 0] * cos(x[2, 0]) * self._dt
+        dy_dv = lambda x, u: sin(x[2, 0]) * self._dt
+        self._calc_motion_jacob = lambda x, u: np.array(
             [
                 [1.0, 0.0, dx_dyaw(x, u), dx_dv(x, u)],
                 [0.0, 1.0, dy_dyaw(x, u), dy_dv(x, u)],
-                [0.0, 0.0, 1.0,           0.0        ],
-                [0.0, 0.0, 0.0,           1.0        ]
+                [0.0, 0.0, 1.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0]
             ])
 
-        self.cov = np.diag(
+        # 運動モデルの分散
+        self._cov = np.diag(
             [
                 0.1,
                 0.1,
@@ -44,41 +55,15 @@ class Circle2D(object):
                 1.0
             ])**2
 
-    def calc_next_dt_motion(self, x_t, u_t):
-        u"""
-        設定時間分先の状態を計算する
-        """
-        x_pred = np.dot(self.state_mat(), x_t) + np.dot(self.command_mat(x_t), u_t)
-        print(x_pred)
-        return x_pred
+    def calc_next_motion(self, x, u):
+        u"""設定時間分先の状態を計算する"""
+        return self._extract_static_x(x) + self._extract_command_x(x, u)
 
-    def calc_jacob_of_state(self, x_pred, u_t):
-        u"""
-        設定時間先近傍の振る舞いを近似したヤコビ行列を計算する
-        """
-        return self.state_jacob_mat(x_pred, u_t)
+    def calc_motion_jacob(self, x, u):
+        u"""設定時間先近傍の振る舞いを近似したヤコビ行列を計算する"""
+        return self._calc_motion_jacob(x, u)
 
-
-class GPSObservation():
-    def __init__(self):
-        u"""
-        観測行列の定義を行う.
-
-        状態ベクトルから，観測に対応する部分を取り出す役割をする
-        """
-        self.observation_mat = lambda: np.array(
-            [
-                [1.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0, 0.0]
-            ])
-
-        self.observation_jacob_mat = lambda: np.array(
-            [
-                [1.0, 0.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0, 0.0]
-            ])
-
-        self.cov = np.diag([1.0, 1.0])**2
-
-    def observe_at(self, x_t):
-        return self.observation_mat() @ x_t
+    @property
+    def cov(self):
+        u"""運動モデルの分散を取り出す"""
+        return self._cov
