@@ -2,6 +2,16 @@
 import numpy as np
 
 
+def create(config):
+    if config['type'] == 'velocity_and_yaw_const':
+        vel = config['vel']
+        yaw_rate = config['yaw_rate']
+        return VelocityAndYawConst(vel, yaw_rate)
+    else:
+        raise NotImplementedError('{} is not a type of command'.format(
+            config['type']))
+
+
 class VelocityAndYawConst():
     u"""一定の速度・角速度を与えるクラス."""
 

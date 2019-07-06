@@ -4,6 +4,15 @@ from math import cos, sin
 import numpy as np
 
 
+def create(config):
+    if config['type'] == 'circle2d':
+        dt = config['dt']
+        return Circle2D(dt)
+    else:
+        raise NotImplementedError('{} is not a type of motion model'.format(
+            config['type']))
+
+
 class Circle2D(object):
     u"""xy平面上の円運動モデル
 

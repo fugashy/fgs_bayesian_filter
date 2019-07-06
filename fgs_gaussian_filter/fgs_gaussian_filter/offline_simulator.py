@@ -30,10 +30,11 @@ class OfflineSimulator():
             import plotter
 
         # TODO(fugashy) extract parameters from config file
-        self._motion_model = motion_models.Circle2D(0.1)
-        self._obs_model = observation_models.GPSObservation()
-        self._command = commands.VelocityAndYawConst(1.0, 0.1)
-        self._noise_model = noise_models.SampleNoiseExposure()
+        self._motion_model = motion_models.create(config['motion_model'])
+        self._obs_model = observation_models.create(config['observation_model'])
+        self._command = commands.create(config['command'])
+        self._noise_model = noise_models.create(
+            config['noise_model'], self._command, self._obs_model)
         self._gaussian_filter = gaussian_filters.create(
             config['gaussian_filter'], self._motion_model, self._obs_model)
         # TODO(fugashy) rename as general name

@@ -3,6 +3,14 @@ u"""Observation models such as GPS."""
 import numpy as np
 
 
+def create(config):
+    if config['type'] == 'gps_xy':
+        return GPSObservation()
+    else:
+        raise NotImplementedError('{} is not a type of observation_model'.format(
+            config['type']))
+
+
 class GPSObservation():
     u"""位置のみを観測するクラス.
 

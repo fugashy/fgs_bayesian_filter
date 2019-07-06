@@ -2,6 +2,15 @@
 import numpy as np
 
 
+def create(config, command, obs_model):
+    if config['type'] == 'sample':
+        return SampleNoiseExposure()
+    else:
+        raise NotImplementedError('{} is not a type of noise model'.format(
+            config['type']))
+
+
+# TODO(fugashy) モデルに応じて次元を変えるようにする
 class SampleNoiseExposure(object):
     u"""PythonRoboticsと同様のノイズ付加を行うクラス"""
 

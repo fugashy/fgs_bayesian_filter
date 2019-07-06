@@ -1,3 +1,18 @@
+command:
+  type: velocity_and_yaw_const
+  vel: 1.0
+  yaw_rate: 0.1
+
+motion_model:
+  type: circle2d
+  dt: 0.1
+
+observation_model:
+  type: gps_xy
+
+noise_model:
+  type: sample
+
 gaussian_filter:
 # type: ekf
   type: ukf
