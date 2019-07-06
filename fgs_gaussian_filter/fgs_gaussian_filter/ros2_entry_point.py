@@ -7,7 +7,7 @@ if __name__ == '__main__':
     import motion_models
     import observation_models
     import noise_models
-    import extended_kalman_filter
+    import gaussian_filters
     import plotter
 else:
     from fgs_gaussian_filter import (
@@ -15,7 +15,7 @@ else:
         motion_models,
         observation_models,
         noise_models,
-        extended_kalman_filter,
+        gaussian_filters,
         plotter
     )
 
@@ -40,7 +40,7 @@ def ekf_sample(args=None):
     command_model = commands.VelocityAndYawConst(VEL_POS, VEL_YAW)
     obs_model = observation_models.GPSObservation()
     noise_model = noise_models.SampleNoiseExposure()
-    ekf = extended_kalman_filter.ExtendedKalmanFilter(motion_model, obs_model)
+    ekf = gaussian_filters.ExtendedKalmanFilter(motion_model, obs_model)
     plot = plotter.EKFHistory()
 
     try:
