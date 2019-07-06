@@ -7,7 +7,10 @@ import numpy as np
 def create(config):
     if config['type'] == 'circle2d':
         dt = config['dt']
-        return Circle2D(dt)
+        std_dev = config['std_dev']
+        if len(std_dev) != 4:
+            raise ValueError('Input std dev is not valid')
+        return Circle2D(dt, std_dev)
     else:
         raise NotImplementedError('{} is not a type of motion model'.format(
             config['type']))
@@ -19,7 +22,7 @@ class Circle2D(object):
     与えられた状態・操作からその時どの状態になるかを計算する
     """
 
-    def __init__(self, dt):
+    def __init__(self, dt, std_dev_mat):
         u"""運動モデルとそのヤコビアン，分散を用意"""
         self._dt = dt
         # 状態を取り出すための行列
@@ -56,13 +59,7 @@ class Circle2D(object):
             ])
 
         # 運動モデルの分散
-        self._cov = np.diag(
-            [
-                0.1,
-                0.1,
-                np.deg2rad(1.0),
-                1.0
-            ])**2
+        self._cov = np.diag(std_dev_mat)**2
 
     def calc_next_motion(self, x, u):
         u"""設定時間分先の状態を計算する"""

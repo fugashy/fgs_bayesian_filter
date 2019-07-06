@@ -5,7 +5,10 @@ import numpy as np
 
 def create(config):
     if config['type'] == 'gps_xy':
-        return GPSObservation()
+        std_dev = config['std_dev']
+        if len(std_dev) != 2:
+            raise ValueError('Input std dev is not valid')
+        return GPSObservation(std_dev)
     else:
         raise NotImplementedError('{} is not a type of observation_model'.format(
             config['type']))
@@ -17,7 +20,7 @@ class GPSObservation():
     GPSを想定している
     """
 
-    def __init__(self):
+    def __init__(self, std_dev):
         u"""
         観測行列の定義を行う.
 
@@ -35,7 +38,7 @@ class GPSObservation():
                 [0.0, 1.0, 0.0, 0.0]
             ])
 
-        self.cov = np.diag([1.0, 1.0])**2
+        self.cov = np.diag(std_dev)**2
 
     def observe_at(self, x):
         u"""与えられた状態をもとに観測する."""

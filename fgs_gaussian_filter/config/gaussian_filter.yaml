@@ -6,9 +6,11 @@ command:
 motion_model:
   type: circle2d
   dt: 0.1
+  std_dev: [0.1, 0.1, 0.01745329251994329, 1.0]
 
 observation_model:
   type: gps_xy
+  std_dev: [1.0, 1.0]
 
 noise_model:
   type: sample
