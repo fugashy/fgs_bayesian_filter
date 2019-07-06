@@ -6,7 +6,6 @@ setup(
     name=PKG_NAME,
     version='1.0.0',
     packages=[PKG_NAME],
-    data_files=[('share/' + PKG_NAME, ['config/gaussian_filter.yaml', 'config/application.yaml'])],
     install_requires=['setuptools'],
     zip_safe=True,
     author='fugashy',
@@ -25,7 +24,7 @@ setup(
     test_suite='test',
     entry_points={
         'console_scripts': [
-            'filter_out = fgs_gaussian_filter.ros2_entry_point:ekf_sample',
+            'start = fgs_gaussian_filter.ros_entry_point:main',
         ],
     },
 )

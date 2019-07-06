@@ -4,7 +4,7 @@ from copy import deepcopy
 
 import numpy as np
 
-import scipy
+from scipy import linalg as LA
 
 
 def create(config, motion_model, obs_model):
@@ -54,7 +54,7 @@ class ExtendedKalmanFilter():
         # ?
         S = z_jacob @ cov_pred @ z_jacob.T + self.obs_model.cov
         # ?
-        K = cov_pred @ z_jacob.T @ np.linalg.inv(S)
+        K = cov_pred @ z_jacob.T @ LA.inv(S)
         # 実際の計測との差
         z_diff = z - z_pred
         # 状態の修正
@@ -97,7 +97,7 @@ class UnscentedKalmanFilter():
         sigma = self._predict_sigma_motion(sigma, u)
         x_pred = (self._wm @ sigma.T).T
         cov_pred = self._calc_sigma_cov(
-            x_pred, sigma, self._wc, self._motion_model.cov)
+            x_pred, sigma, self._motion_model.cov)
 
         #  Update
         z_pred = self._obs_model.observe_at(x_pred)
@@ -126,9 +126,9 @@ class UnscentedKalmanFilter():
         self._wm = np.array([wm])
         self._wc = np.array([wc])
 
-    def generate_sigma_points(self, x, cov):
+    def _generate_sigma_points(self, x, cov):
         sigma = deepcopy(x)
-        cov_squared = scipy.linalg.sqrtm(cov)
+        cov_squared = LA.sqrtm(cov)
         n = len(x[:, 0])
 
         for i in range(n):
