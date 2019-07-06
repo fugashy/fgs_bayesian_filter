@@ -30,18 +30,18 @@ def ekf_sample(args=None):
 
     time = 0.0
 
-    # [x, y, yaw, v]
-    x_est = np.zeros((4, 1))
-    x_gt = np.zeros((4, 1))
-    x_cov_est = np.eye(4)
-    x_noised = np.zeros((4, 1))  # 放っておくとどうなるか
-
     motion_model = motion_models.Circle2D(DT)
     command_model = commands.VelocityAndYawConst(VEL_POS, VEL_YAW)
     obs_model = observation_models.GPSObservation()
     noise_model = noise_models.SampleNoiseExposure()
-    ekf = gaussian_filters.ExtendedKalmanFilter(motion_model, obs_model)
+    gaussian_filter = gaussian_filters.ExtendedKalmanFilter(motion_model, obs_model)
     plot = plotter.EKFHistory()
+
+    # [x, y, yaw, v]
+    x_est = np.zeros(motion_model.shape)
+    x_gt = np.zeros(motion_model.shape)
+    x_cov_est = np.eye(motion_model.shape[0])
+    x_noised = np.zeros(motion_model.shape)  # 放っておくとどうなるか
 
     try:
         while time < SIM_TIME:
@@ -61,7 +61,7 @@ def ekf_sample(args=None):
             x_noised = motion_model.calc_next_motion(x_noised, u_noised)
 
             # EKF
-            x_est, x_cov_est = ekf.bayesian_update(u_noised, z_noised)
+            x_est, x_cov_est = gaussian_filter.bayesian_update(u_noised, z_noised)
 
             plot.plot(x_gt, x_est, x_noised, z_noised, x_cov_est)
     except KeyboardInterrupt:

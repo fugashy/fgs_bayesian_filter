@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-u"""EKF."""
 import math
 from copy import deepcopy
 
@@ -8,13 +7,27 @@ import numpy as np
 import scipy
 
 
+def create(config, motion_model, obs_model):
+    if config['type'] == 'ekf':
+        return ExtendedKalmanFilter(motion_model, obs_model)
+    elif config['type'] == 'ukf':
+        alpha = config['alpha']
+        beta = config['beta']
+        kappa = config['kappa']
+        return UnscentedKalmanFilter(
+            alpha, beta, kappa, motion_model, obs_model)
+    else:
+        raise NotImplementedError('{} is not a type of gaussian filter'.format(
+            config['type']))
+
+
 class ExtendedKalmanFilter():
     u"""EKFの更新を行う."""
 
     def __init__(self, motion_model, obs_model):
         u"""推定値の初期化と各種モデルの保持."""
-        self.x_est = np.zeros((4, 1))
-        self.cov_est = np.eye(4)
+        self.x_est = np.zeros(motion_model.shape)
+        self.cov_est = np.eye(motion_model.shape[0])
 
         self.motion_model = motion_model
         self.obs_model = obs_model
@@ -58,20 +71,19 @@ class UnscentedKalmanFilter():
     さっぱりわかってない
     """
 
-    def __init__(self, alpha, beta, kappa, x, motion_model, obs_model):
+    def __init__(self, alpha, beta, kappa, motion_model, obs_model):
         u"""初期化
 
         パラメータの計算と推定する状態等の次元決定
         各種モデルの保持
         """
-        x_len = len(x)
         self._wm = 0.
         self._wc = 0.
         self._gamma = 0.
-        self._init_param(x_len, alpha, beta, kappa)
+        self._init_param(motion_model.shape[0], alpha, beta, kappa)
 
-        self._x_est = np.zeros(x.shape)
-        self._cov_est = np.eye(x_len)
+        self._x_est = np.zeros(motion_model.shape)
+        self._cov_est = np.eye(motion_model.shape[0])
 
         self._motion_model = motion_model
         self._obs_model = obs_model

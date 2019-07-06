@@ -64,6 +64,10 @@ class Circle2D(object):
         return self._calc_motion_jacob(x, u)
 
     @property
+    def shape(self):
+        return (4, 1)
+
+    @property
     def cov(self):
         u"""運動モデルの分散を取り出す"""
         return self._cov
