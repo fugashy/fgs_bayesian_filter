@@ -1,11 +1,12 @@
 from setuptools import setup
 
-PKG_NAME='fgs_gaussian_filter'
+PKG_NAME = 'fgs_gaussian_filter'
 
 setup(
     name=PKG_NAME,
     version='1.0.0',
     packages=[PKG_NAME],
+    data_files=[('share/' + PKG_NAME, ['config/gaussian_filter.yaml', 'config/application.yaml'])],
     install_requires=['setuptools'],
     zip_safe=True,
     author='fugashy',
