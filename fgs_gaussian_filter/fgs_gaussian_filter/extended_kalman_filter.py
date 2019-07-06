@@ -23,17 +23,27 @@ class ExtendedKalmanFilter():
         cov_pre = deepcopy(self.cov_est)
 
         # 予測predict
+        # 前回の状態を元に操作を与えた場合の状態
         x_pred = self.motion_model.calc_next_motion(x_pre, u)
+        # その時の運動モデルのヤコビ行列
         x_jacob = self.motion_model.calc_motion_jacob(x_pred, u)
+        # 分散の予測
         cov_pred = x_jacob @ cov_pre @ x_jacob.T + self.motion_model.cov
 
         # 更新update
+        # 計測モデルのヤコビ行列
         z_jacob = self.obs_model.calc_jacob(x_pred)
+        # 予測した状態における計測
         z_pred = self.obs_model.observe_at(x_pred)
-        y = z - z_pred
+        # ?
         S = z_jacob @ cov_pred @ z_jacob.T + self.obs_model.cov
+        # ?
         K = cov_pred @ z_jacob.T @ np.linalg.inv(S)
-        self.x_est = x_pred + K @ y
+        # 実際の計測との差
+        z_diff = z - z_pred
+        # 状態の修正
+        self.x_est = x_pred + K @ z_diff
+        # 状態のばらつきの修正
         self.cov_est = (np.eye(len(self.x_est)) - K @ z_jacob) @ cov_pred
 
         return self.x_est, self.cov_est
