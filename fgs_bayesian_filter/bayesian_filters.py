@@ -35,13 +35,9 @@ class BayesianFilter():
         self._command_model = command_model
         self._motion_model = motion_model
         self._obs_model = obs_model
-        self._user_callback = None
 
     def bayesian_update(self, u, z):
         raise NotImplementedError('To developers, inherit this class')
-
-    def register_update_callback(self, user_callback):
-        self._user_callback = user_callback
 
 
 class ExtendedKalmanFilter(BayesianFilter):

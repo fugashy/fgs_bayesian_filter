@@ -34,9 +34,7 @@ class OfflineSimulator():
             config['bayesian_filter'], self._command_model, self._motion_model, self._obs_model)
         self._plotter = plotters.create(config['plotter'], self._obs_model)
 
-        self._x_est = np.zeros(self._motion_model.shape)
         self._x_gt = np.zeros(self._motion_model.shape)
-        self._x_cov_est = np.eye(self._motion_model.shape[0])
         self._x_noised = np.zeros(self._motion_model.shape)  # 放っておくとどうなるか
 
     def run(self):
@@ -57,7 +55,7 @@ class OfflineSimulator():
                 # Localization
                 x_est, x_cov_est = self._filter.bayesian_update(u_noised, z_noised)
 
-                self._plotter.plot(
-                    self._x_gt, x_est, self._x_noised, z_noised, x_cov_est)
+                # 可視化
+                self._plotter.plot(self._x_gt, x_est, self._x_noised, z_noised, x_cov_est)
         except KeyboardInterrupt:
             print('Interrupted by user')
