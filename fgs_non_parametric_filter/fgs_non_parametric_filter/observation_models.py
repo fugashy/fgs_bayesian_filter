@@ -53,6 +53,16 @@ class RFIDXYD():
                     [d, self._id_list[i, 0], self._id_list[i, 1]])))
         return z
 
+    def gauss_likelihood(self, z1, z2):
+        u"""互いの距離が近いほど，確からしいとする"""
+        dz = z1[0] - z2[0]
+        # 距離についての正規分布の式で評価
+        # 距離が近いほど値が大きくなる
+        likelihood = \
+            1.0 / math.sqrt(2.0 * math.pi * self._cov[0, 0]) * \
+            math.exp(-dz**2 / (2.0 * self._cov[0, 0]))
+        return likelihood
+
     @property
     def cov(self):
         return self._cov

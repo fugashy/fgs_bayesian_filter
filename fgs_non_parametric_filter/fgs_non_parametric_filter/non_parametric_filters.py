@@ -48,22 +48,19 @@ class ParticleFilter():
             p = np.array([self._px[:, ip]]).T
             p = self._motion_model.calc_next_motion(p, ud)
 
+            # パーティクルから観測
+            zp = self._obs_model.observe_at(p)
+
             # そのパーティクルの尤度を更新
             pw = self._pw[0, ip]
-            for iz in range(len(z[:, 0])):
-                # ばらまいてあるパーティクルと事前に観測した点の間の距離
-                dx = p[0, 0] - z[iz, 1]
-                dy = p[1, 0] - z[iz, 2]
-                prez = math.sqrt(dx**2 + dy**2)
-                # 事前に観測したときの距離との差
-                dz = prez - z[iz, 0]
-                # 尤度はこの値が小さいほどよいという計算をする
-                # 距離についての正規分布の式で評価
-                # 距離が近いほど値が大きくなる
-                likelihood = \
-                    1.0 / math.sqrt(2.0 * math.pi * self._obs_model.cov[0, 0]) * \
-                    math.exp(-dz**2 / (2.0 * self._obs_model.cov[0, 0]))
-                # 重みを更新
+            for iz in range(len(zp[:, 0])):
+                try:
+                    # 事前に観測したときの距離との差
+                    # パーティクルから観測すると観測できなかった点も含まれる場合がある
+                    # そのためアクセスエラーはスキップする
+                    likelihood = self._obs_model.gauss_likelihood(zp[iz], z[iz])
+                except IndexError:
+                    continue
                 pw *= likelihood
 
             # パーティクルの更新
