@@ -9,13 +9,13 @@ from scipy import linalg as LA
 
 def create(config, command_model, motion_model, obs_model):
     if config['type'] == 'ekf':
-        return ExtendedKalmanFilter(motion_model, obs_model)
+        return ExtendedKalmanFilter(command_model, motion_model, obs_model)
     elif config['type'] == 'ukf':
         alpha = config['alpha']
         beta = config['beta']
         kappa = config['kappa']
         return UnscentedKalmanFilter(
-            alpha, beta, kappa, motion_model, obs_model)
+            alpha, beta, kappa, command_model, motion_model, obs_model)
     elif config['type'] == 'pf':
         p_num = config['p_num']
         p_num_resample = config['p_resample']
@@ -30,16 +30,28 @@ def create(config, command_model, motion_model, obs_model):
             config['type']))
 
 
-class ExtendedKalmanFilter():
+class BayesianFilter():
+    def __init__(self, command_model, motion_model, obs_model):
+        self._command_model = command_model
+        self._motion_model = motion_model
+        self._obs_model = obs_model
+        self._user_callback = None
+
+    def bayesian_update(self, u, z):
+        raise NotImplementedError('To developers, inherit this class')
+
+    def register_update_callback(self, user_callback):
+        self._user_callback = user_callback
+
+
+class ExtendedKalmanFilter(BayesianFilter):
     u"""EKFの更新を行う."""
 
-    def __init__(self, motion_model, obs_model):
+    def __init__(self, command_model, motion_model, obs_model):
         u"""推定値の初期化と各種モデルの保持."""
+        super().__init__(command_model, motion_model, obs_model)
         self.x_est = np.zeros(motion_model.shape)
         self.cov_est = np.eye(motion_model.shape[0])
-
-        self.motion_model = motion_model
-        self.obs_model = obs_model
 
     def bayesian_update(self, u, z):
         u"""ベイズフィルタ更新を行う."""
@@ -49,19 +61,19 @@ class ExtendedKalmanFilter():
 
         # 予測predict
         # 前回の状態を元に操作を与えた場合の状態
-        x_pred = self.motion_model.calc_next_motion(x_pre, u)
+        x_pred = self._motion_model.calc_next_motion(x_pre, u)
         # その時の運動モデルのヤコビ行列
-        x_jacob = self.motion_model.calc_motion_jacob(x_pred, u)
+        x_jacob = self._motion_model.calc_motion_jacob(x_pred, u)
         # 分散の予測
-        cov_pred = x_jacob @ cov_pre @ x_jacob.T + self.motion_model.cov
+        cov_pred = x_jacob @ cov_pre @ x_jacob.T + self._motion_model.cov
 
         # 更新update
         # 計測モデルのヤコビ行列
-        z_jacob = self.obs_model.calc_jacob(x_pred)
+        z_jacob = self._obs_model.calc_jacob(x_pred)
         # 予測した状態における計測
-        z_pred = self.obs_model.observe_at(x_pred)
+        z_pred = self._obs_model.observe_at(x_pred)
         # ?
-        S = z_jacob @ cov_pred @ z_jacob.T + self.obs_model.cov
+        S = z_jacob @ cov_pred @ z_jacob.T + self._obs_model.cov
         # ?
         K = cov_pred @ z_jacob.T @ LA.inv(S)
         # 実際の計測との差
@@ -74,18 +86,19 @@ class ExtendedKalmanFilter():
         return self.x_est, self.cov_est
 
 
-class UnscentedKalmanFilter():
+class UnscentedKalmanFilter(BayesianFilter):
     u"""アンセッテッドカルマンフィルタ
 
     さっぱりわかってない
     """
 
-    def __init__(self, alpha, beta, kappa, motion_model, obs_model):
+    def __init__(self, alpha, beta, kappa, command_model, motion_model, obs_model):
         u"""初期化
 
         パラメータの計算と推定する状態等の次元決定
         各種モデルの保持
         """
+        super().__init__(command_model, motion_model, obs_model)
         self._wm = 0.
         self._wc = 0.
         self._gamma = 0.
@@ -93,9 +106,6 @@ class UnscentedKalmanFilter():
 
         self._x_est = np.zeros(motion_model.shape)
         self._cov_est = np.eye(motion_model.shape[0])
-
-        self._motion_model = motion_model
-        self._obs_model = obs_model
 
     def bayesian_update(self, u, z):
         x_pre = deepcopy(self._x_est)
@@ -181,16 +191,14 @@ class UnscentedKalmanFilter():
         return p
 
 
-class ParticleFilter():
+class ParticleFilter(BayesianFilter):
     def __init__(
             self, p_num, p_num_resample, resample_threshold,
             command_model, motion_model, obs_model):
+        super().__init__(command_model, motion_model, obs_model)
         self._p_num = p_num
         self._p_num_resample = p_num_resample
         self._resample_threshold = resample_threshold
-        self._motion_model = motion_model
-        self._obs_model = obs_model
-        self._command_model = command_model
 
         self._px = np.zeros((self._motion_model.shape[0], p_num))
         self._pw = np.zeros((1, p_num)) + 1.0 / p_num
