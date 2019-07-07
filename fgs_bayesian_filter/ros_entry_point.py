@@ -7,7 +7,7 @@ from rclpy.node import Node
 import yaml
 
 # TODO(fugashy) create factory of application
-from fgs_gaussian_filter import offline_simulator
+from fgs_bayesian_filter import offline_simulator
 
 
 def main(args=None):

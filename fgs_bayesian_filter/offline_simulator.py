@@ -13,7 +13,7 @@ class OfflineSimulator():
         更新していく状態等の定義
         """
         if as_node:
-            from fgs_gaussian_filter import (
+            from fgs_bayesian_filter import (
                 bayesian_filters,
                 command_models,
                 motion_models,
