@@ -38,15 +38,21 @@ class RFIDXYD():
 
         self._cov = np.diag(std_dev)**2
 
-    def observe_at(self, x):
+    def observe_at(self, x, with_noise=False):
         observed_pose = self.obs_mat @ x
 
         # 距離計算して，計測範囲内のRFIDのみ抽出する
         # [distance, x, y]の3要素
         z = np.zeros((0, 3))
         for i in range(len(self._id_list)):
-            dx = observed_pose[0] - self._id_list[i, 0]
-            dy = observed_pose[1] - self._id_list[i, 1]
+            if with_noise:
+                dx = (observed_pose[0] - self._id_list[i, 0]) + \
+                    np.random.randn() * self._cov[0, 0]
+                dy = (observed_pose[1] - self._id_list[i, 1]) + \
+                    np.random.randn() * self._cov[1, 1]
+            else:
+                dx = observed_pose[0] - self._id_list[i, 0]
+                dy = observed_pose[1] - self._id_list[i, 1]
             d = math.sqrt(dx**2 + dy**2)
             if d <= self._max_range:
                 z = np.vstack((z, np.array(

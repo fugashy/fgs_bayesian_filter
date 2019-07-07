@@ -32,9 +32,13 @@ class VelocityAndYawConst():
 
         self._cov = np.diag(std_dev)**2
 
-    def command(self):
+    def command(self, with_noise=False):
         u"""操作を実施する"""
-        return self._command
+        if with_noise:
+            return self._command + \
+                self._cov @ np.random.randn(self._command.shape[0], 1)
+        else:
+            return self._command
 
     @property
     def cov(self):
