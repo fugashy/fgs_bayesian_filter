@@ -20,11 +20,13 @@ class SampleNoiseExposure(object):
             u + ((np.diag([1.0, np.deg2rad(30.0)])**2) @ np.random.randn(2, 1))
 
         self._expose_noise_to_obs = lambda z: \
-            z + (np.diag([0.2 for i in range(z.shape[0])])**2) @ np.random.randn(z.shape[0], 1)
+            z + (np.diag([0.2])**2) * np.random.randn()
 
     def expose(self, u, z):
         u"""操作と観測にノイズに曝す"""
         u_noised = self._expose_noise_to_com(u)
-        z_noised = self._expose_noise_to_obs(z)
+        z_noised = z
+        for z_noised_ele in z_noised:
+            z_noised_ele[0] = self._expose_noise_to_obs(z_noised_ele[0])
 
         return u_noised, z_noised

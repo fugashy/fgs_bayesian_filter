@@ -25,6 +25,7 @@ class PlotterWithLandMark(object):
 
         plt.plot(self._landmarks[:, 0], self._landmarks[:, 1], '*k')
 
+        plt.plot(px[0, :], px[1, :], '.r')
         plt.plot(self._x_gt[0, :].flatten(),
                  self._x_gt[1, :].flatten(), '-b')
         plt.plot(self._x_noised[0, :].flatten(),

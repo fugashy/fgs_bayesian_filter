@@ -50,7 +50,21 @@ class ParticleFilter():
 
             # そのパーティクルの尤度を更新
             pw = self._pw[0, ip]
-            pw = self._gauss_likelihood(p, pw, z)
+            for iz in range(len(z[:, 0])):
+                # ばらまいてあるパーティクルと事前に観測した点の間の距離
+                dx = p[0, 0] - z[iz, 1]
+                dy = p[1, 0] - z[iz, 2]
+                prez = math.sqrt(dx**2 + dy**2)
+                # 事前に観測したときの距離との差
+                dz = prez - z[iz, 0]
+                # 尤度はこの値が小さいほどよいという計算をする
+                # 距離についての正規分布の式で評価
+                # 距離が近いほど値が大きくなる
+                likelihood = \
+                    1.0 / math.sqrt(2.0 * math.pi * self._obs_model.cov[0, 0]) * \
+                    math.exp(-dz**2 / (2.0 * self._obs_model.cov[0, 0]))
+                # 重みを更新
+                pw *= likelihood
 
             # パーティクルの更新
             self._px[:, ip] = p[:, 0]
@@ -74,25 +88,6 @@ class ParticleFilter():
     @property
     def particles(self):
         return self._px, self._pw
-
-    def _gauss_likelihood(self, p, pw, z):
-        for i in range(len(z[:, 0])):
-            # ばらまいてあるパーティクルと事前に観測した点の間の距離
-            dx = p[0, 0] - z[i, 1]
-            dy = p[1, 0] - z[i, 2]
-            prez = math.sqrt(dx**2 + dy**2)
-            # 事前に観測したときの距離との差
-            dz = prez - z[i, 0]
-            # 尤度はこの値が小さいほどよいという計算をする
-            # 距離についての正規分布の式で評価
-            # 距離が近いほど値が大きくなる
-            likelihood = \
-                1.0 / math.sqrt(2.0 * math.pi * self._obs_model.cov[0, 0]) * \
-                math.exp(-dz**2 / (2.0 * self._obs_model.cov[0, 0]**2))
-            print(likelihood)
-            # 重みを更新
-            pw *= likelihood
-        return pw
 
     def _calc_cov(self):
         cov = np.zeros(
