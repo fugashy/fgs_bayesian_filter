@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format2.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="2">
+  <name>fgs_gaussian_filter</name>
+  <version>1.0.0</version>
+  <description>A package that provide gaussian filter such as kalman filter</description>
+  <maintainer email="fugashy@icloud.com">fugashy</maintainer>
+  <license>MIT</license>
+
+  <author>fugashy</author>
+  <author email="fugashy@icloud.com">fugashy</author>
+
+  <url type="website">https://github.com/fugashy</url>
+
+  <license>MIT</license>
+
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -1,0 +1,28 @@
+command_model:
+  type: velocity_and_yaw_const
+  vel: 1.0
+  yaw_rate: 0.1
+  std_dev: [1.0, 0.6981317007977318]  # 40.0deg
+
+motion_model:
+  type: circle2d
+  dt: 0.1
+  std_dev: [0.1, 0.1, 0.01745329251994329, 1.0]
+
+observation_model:
+  type: rfid_xyd
+  std_dev: [0.1, 0.1]
+  max_range: 20.0
+  id_list: [[10.0, 0.0],
+            [10.0, 10.0],
+            [0.0, 15.0],
+            [-5.0, 20.0]]
+
+noise_model:
+  type: sample
+
+filter:
+  type: pf
+  p_num: 100
+  p_resample: 50
+  resample_threshold: 50
