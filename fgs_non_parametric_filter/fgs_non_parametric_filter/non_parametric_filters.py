@@ -40,11 +40,9 @@ class ParticleFilter():
     def bayesian_update(self, u, z):
         # 設定されたパーティクル数だけ実施する
         for ip in range(self._p_num):
-            # 操作モデルをランダムに揺さぶる
-            # すなわち，パーティクルのばらまき
-            udv = u[0, 0] + np.random.randn() * self._command_model.cov[0, 0]
-            udw = u[1, 0] + np.random.randn() * self._command_model.cov[1, 1]
-            ud = np.array([[udv, udw]]).T
+            # 操作モデルをランダムに揺さぶり，そのときの状態を計算する
+            # すなわち，パーティクルのばらまきをする
+            ud = u + self._command_model.cov @ np.random.randn(u.shape[0], 1)
             p = np.array([self._px[:, ip]]).T
             p = self._motion_model.calc_next_motion(p, ud)
 
