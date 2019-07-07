@@ -1,6 +1,6 @@
 from setuptools import setup
 
-PKG_NAME = 'fgs_gaussian_filter'
+PKG_NAME = 'fgs_bayesian_filter'
 
 setup(
     name=PKG_NAME,
@@ -19,12 +19,12 @@ setup(
         'Programming Language :: Python',
         'Topic :: Software Development',
     ],
-    description=('A package that provide gaussian filters such as kalman filter'),
+    description=('A package that provide bayasian filters such as kalman filter'),
     license='MIT',
     test_suite='test',
     entry_points={
         'console_scripts': [
-            'start = fgs_gaussian_filter.ros_entry_point:main',
+            'start = fgs_bayesian_filter.ros_entry_point:main',
         ],
     },
 )

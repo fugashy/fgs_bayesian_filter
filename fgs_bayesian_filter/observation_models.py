@@ -1,3 +1,4 @@
+u"""Observation models such as GPS."""
 # -*- coding: utf-8 -*-
 import math
 
@@ -5,7 +6,12 @@ import numpy as np
 
 
 def create(config):
-    if config['type'] == 'rfid_xyd':
+    if config['type'] == 'gps_xy':
+        std_dev = config['std_dev']
+        if len(std_dev) != 2:
+            raise ValueError('Input std dev is not valid')
+        return GPSObservation(std_dev)
+    elif config['type'] == 'rfid_xyd':
         id_list = config['id_list']
         max_range = config['max_range']
         std_dev = config['std_dev']
@@ -15,6 +21,51 @@ def create(config):
     else:
         raise NotImplementedError('{} is not a type of observation_model'.format(
             config['type']))
+
+
+class GPSObservation():
+    u"""位置のみを観測するクラス.
+
+    GPSを想定している
+    """
+
+    def __init__(self, std_dev):
+        u"""
+        観測行列の定義を行う.
+
+        状態ベクトルから，観測に対応する部分を取り出す役割をする
+        """
+        self._obs_mat = np.array(
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0]
+            ])
+
+        self._obs_jacob_mat = np.array(
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0]
+            ])
+
+        self._cov = np.diag(std_dev)**2
+
+    def observe_at(self, x, with_noise=False):
+        u"""与えられた状態をもとに観測する."""
+        if with_noise:
+            return self._obs_mat @ x + self._cov @ np.random.randn(2, 1)
+        else:
+            return self._obs_mat @ x
+
+    def calc_jacob(self, x):
+        u"""ヤコビアンを返す
+
+        状態を与える必要はないが，他クラスを意識して与えることにする
+        """
+        return self._obs_jacob_mat
+
+    @property
+    def cov(self):
+        return self._cov
 
 
 class RFIDXYD():

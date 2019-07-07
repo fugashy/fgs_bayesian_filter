@@ -14,31 +14,25 @@ class OfflineSimulator():
         """
         if as_node:
             from fgs_gaussian_filter import (
-                commands,
-                gaussian_filters,
+                bayesian_filters,
+                command_models,
                 motion_models,
-                noise_models,
                 observation_models,
-                plotter
+                plotters
             )
         else:
-            import commands
-            import gaussian_filters
+            import bayesian_filters
+            import command_models
             import motion_models
-            import noise_models
             import observation_models
-            import plotter
+            import plotters
 
-        # TODO(fugashy) extract parameters from config file
         self._motion_model = motion_models.create(config['motion_model'])
         self._obs_model = observation_models.create(config['observation_model'])
-        self._command = commands.create(config['command'])
-        self._noise_model = noise_models.create(
-            config['noise_model'], self._command, self._obs_model)
-        self._gaussian_filter = gaussian_filters.create(
-            config['gaussian_filter'], self._motion_model, self._obs_model)
-        # TODO(fugashy) rename as general name
-        self._plotter = plotter.EKFHistory()
+        self._command_model = command_models.create(config['command_model'])
+        self._filter = bayesian_filters.create(
+            config['bayesian_filter'], self._command_model, self._motion_model, self._obs_model)
+        self._plotter = plotters.create(config['plotter'], self._obs_model)
 
         self._x_est = np.zeros(self._motion_model.shape)
         self._x_gt = np.zeros(self._motion_model.shape)
@@ -49,21 +43,19 @@ class OfflineSimulator():
         try:
             while True:
                 # 操作を与えて真値を更新
-                u = self._command.command()
+                u = self._command_model.command(with_noise=False)
                 self._x_gt = self._motion_model.calc_next_motion(self._x_gt, u)
 
-                # そこで観測
-                z = self._obs_model.observe_at(self._x_gt)
-
-                # ノイズを与える
-                u_noised, z_noised = self._noise_model.expose(u, z)
+                # 操作と観測
+                u_noised = self._command_model.command(with_noise=True)
+                z_noised = self._obs_model.observe_at(self._x_gt, with_noise=True)
 
                 # ノイズを受けた状態・操作を用いて運動モデルを更新する(こいつはこれの繰り返し)
                 self._x_noised = self._motion_model.calc_next_motion(
                     self._x_noised, u_noised)
 
-                # EKF
-                x_est, x_cov_est = self._gaussian_filter.bayesian_update(u_noised, z_noised)
+                # Localization
+                x_est, x_cov_est = self._filter.bayesian_update(u_noised, z_noised)
 
                 self._plotter.plot(
                     self._x_gt, x_est, self._x_noised, z_noised, x_cov_est)

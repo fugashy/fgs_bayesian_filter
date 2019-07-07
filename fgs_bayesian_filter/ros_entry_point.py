@@ -13,7 +13,7 @@ from fgs_gaussian_filter import offline_simulator
 def main(args=None):
     rclpy.init(args=args)
 
-    node = Node('gaussian_filter')
+    node = Node('bayesian_filter')
 
     node.declare_parameter(name='config_path', value='')
     config_path = node.get_parameter('config_path').value

@@ -1,13 +1,39 @@
-# fgs_localization
+# fgs_bayesian_filter
 
-自己位置推定のための学習用ROS2パッケージ  
+主に自己位置推定のためのROS2パッケージ  
+学習用途  
 ROS2を用いない実行方法も提供
 
-# Packages
+# Implemented gaussian filters
 
-- fgs_gaussian_filter
+- Gaussian Filters
 
-  与えられるデータが正規分布に従っている場合に用いられるベイジアンフィルタ
+  - Extended Kalman Filter
+
+  - Enscented Kalman Filter
+
+- Non-parametric Filter
+
+  - Particle Filter
+
+# My environment
+
+- OS: MacOS Mojave 10.14.5 (18F203)
+
+# How to use
+
+- As ROS2
+
+  ```bash
+  ros2 run fgs_bayesian_filter start __params:=PATH_TO_THIS_PKG/config/bayesian_filter.yaml
+  ```
+
+- As python3 script
+
+  ```bash
+  cd PATH_TO_THIS_PKG
+  ./fgs_bayesian_filter/entry_point.py
+  ```
 
 # Special Thanks
 
