@@ -1,10 +1,8 @@
 # fgs_bayesian_filter
 
-主に自己位置推定のためのROS2パッケージ  
-学習用途  
-ROS2を用いない実行方法も提供
+A package that provide samples attempting localization based on bayesian filters.
 
-# Implemented gaussian filters
+# Implemented bayesian filters
 
 - Gaussian Filters
 
@@ -12,7 +10,7 @@ ROS2を用いない実行方法も提供
 
   - Enscented Kalman Filter
 
-- Non-parametric Filter
+- Non-parametric Filters
 
   - Particle Filter
 
