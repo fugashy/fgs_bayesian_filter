@@ -35,6 +35,12 @@ ROS2を用いない実行方法も提供
   ./fgs_bayesian_filter/entry_point.py
   ```
 
+![localization_sample](https://github.com/fugashy/fgs_bayesian_filter/blob/doc/images/localization_sample.png)
+
+- Blue arrows are groundtruth.
+- Red arrows are dead-reckoning(only odometry).
+- Green arrows are poses estimated by Bayesian Filter.
+
 # Special Thanks
 
 - [確率ロボティクス](https://book.mynavi.jp/ec/products/detail/id=37337)
