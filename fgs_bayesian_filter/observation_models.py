@@ -18,6 +18,11 @@ def create(config):
         if len(std_dev) != 2:
             raise ValueError('Input std dev is not valid')
         return RFIDXYD(id_list, std_dev, max_range)
+    if config['type'] == 'gps_xyY':
+        std_dev = config['std_dev']
+        if len(std_dev) != 3:
+            raise ValueError('Input std dev is not valid')
+        return GPSAndDirection(std_dev)
     else:
         raise NotImplementedError('{} is not a type of observation_model'.format(
             config['type']))
@@ -127,3 +132,37 @@ class RFIDXYD():
     @property
     def landmark(self):
         return self._id_list
+
+
+class GPSAndDirection():
+    def __init__(self, std_dev):
+        self._obs_mat = np.array(
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0]
+            ])
+        self._obs_jacob_mat = np.array(
+            [
+                [1.0, 0.0, 0.0, 0.0],
+                [0.0, 1.0, 0.0, 0.0],
+                [0.0, 0.0, 1.0, 0.0]
+            ])
+        self._cov = np.diag(std_dev)**2
+
+    def observe_at(self, x, with_noise=False):
+        if with_noise:
+            return self._obs_mat @ x + self._cov @ np.random.randn(3, 1)
+        else:
+            return self._obs_mat @ x
+
+    def calc_jacob(self, x):
+        u"""ヤコビアンを返す
+
+        状態を与える必要はないが，他クラスを意識して与えることにする
+        """
+        return self._obs_jacob_mat
+
+    @property
+    def cov(self):
+        return self._cov
