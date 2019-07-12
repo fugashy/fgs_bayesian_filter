@@ -33,7 +33,7 @@ A package that provide samples attempting localization based on bayesian filters
   ./fgs_bayesian_filter/entry_point.py
   ```
 
-![localization_sample](https://github.com/fugashy/fgs_bayesian_filter/blob/doc/images/localization_sample.png)
+![localization_sample](https://github.com/fugashy/fgs_bayesian_filter/blob/doc/images/ekf.gif)
 
 - Blue arrows are groundtruth.
 - Red arrows are dead-reckoning(only odometry).
