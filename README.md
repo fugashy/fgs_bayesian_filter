@@ -17,20 +17,30 @@ A package that provide samples attempting localization based on bayesian filters
 # My environment
 
 - OS: MacOS Mojave 10.14.5 (18F203)
+- ROS2 dashing diademata (20190531)
 
 # How to use
 
 - As ROS2
 
   ```bash
-  ros2 run fgs_bayesian_filter start __params:=PATH_TO_THIS_PKG/config/bayesian_filter.yaml
+  ros2 run fgs_bayesian_filter start __params:=ROS_PARAMS.yaml
+  ```
+
+  sample of ROS_PARAMS.yaml is following.
+  PATH_TO_THIS_PKG is depends on your location of this package.
+
+  ```yaml
+  estimated_state_publisher:
+    ros__parameters:
+      config_path: "PATH_TO_THIS_PKG/config/bayesian_filter.yaml"
   ```
 
 - As python3 script
 
   ```bash
   cd PATH_TO_THIS_PKG
-  ./fgs_bayesian_filter/entry_point.py
+  ./fgs_bayesian_filter/entry_point.py config/bayesian_filter.yaml
   ```
 
 ![localization_sample](https://github.com/fugashy/fgs_bayesian_filter/blob/doc/images/ekf.gif)
