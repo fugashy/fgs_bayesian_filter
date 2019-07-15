@@ -130,7 +130,7 @@ class RFIDXYD():
         return self._cov
 
     @property
-    def landmark(self):
+    def landmarks(self):
         return self._id_list
 
 

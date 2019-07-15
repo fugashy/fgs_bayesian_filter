@@ -6,18 +6,21 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 
-def create(config, obs_model):
+def create(config, bayesian_filter):
     if config['type'] == 'simple':
-        return SimplePlotter()
+        return SimplePlotter(bayesian_filter)
     elif config['type'] == 'with_landmark':
-        return PlotterWithLandMark(obs_model)
+        return PlotterWithLandMark(bayesian_filter)
     else:
         raise NotImplementedError('{} is not a type of command'.format(
             config['type']))
 
 
 class Plotter():
-    def plot(self, x_gt, x_est, x_noised, z, x_cov_est):
+    def __init__(self, bayesian_filter):
+        self._bayesian_filter = bayesian_filter
+
+    def plot(self, x_gt, x_noised, z):
         raise NotImplementedError('To developers, inherit this class')
 
     def _plot_covariance_ellipse(self, x_est, x_cov_est):  # pragma: no cover
@@ -52,16 +55,16 @@ class Plotter():
 
 
 class SimplePlotter(Plotter):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, bayesian_filter):
+        super().__init__(bayesian_filter)
         self._x_gt_hist = np.zeros((4, 1))
         self._x_est_hist = np.zeros((4, 1))
         self._x_noised_hist = np.zeros((4, 1))
         self._z_hist = np.zeros((2, 1))
 
-    def plot(self, x_gt, x_est, x_noised, z, x_cov_est):
+    def plot(self, x_gt, x_noised, z):
         self._x_gt_hist = np.hstack((self._x_gt_hist, x_gt))
-        self._x_est_hist = np.hstack((self._x_est_hist, x_est))
+        self._x_est_hist = np.hstack((self._x_est_hist, self._bayesian_filter.x_est))
         self._x_noised_hist = np.hstack((self._x_noised_hist, x_noised))
         # 観測ができなかった場合を考慮
         if z is not None:
@@ -75,30 +78,31 @@ class SimplePlotter(Plotter):
                  self._x_noised_hist[1, :].flatten(), '-r')
         plt.plot(self._x_est_hist[0, :].flatten(),
                  self._x_est_hist[1, :].flatten(), '-g')
-        self._plot_covariance_ellipse(x_est, x_cov_est)
+        self._plot_covariance_ellipse(self._bayesian_filter.x_est, self._bayesian_filter.cov_est)
         plt.axis('equal')
         plt.grid(True)
         plt.pause(0.001)
 
 
 class PlotterWithLandMark(Plotter):
-    def __init__(self, obs_model):
-        super().__init__()
+    def __init__(self, bayesian_filter):
+        super().__init__(bayesian_filter)
         self._x_gt = np.zeros((4, 1))
         self._x_est = np.zeros((4, 1))
         self._x_noised = np.zeros((4, 1))
-        self._landmarks = obs_model.landmark
+        self._landmarks = bayesian_filter.obs_model.landmarks
 
-    def plot(self, x_gt, x_est, x_noised, z, x_cov_est, px):
+    def plot(self, x_gt, x_noised, z):
         self._x_gt = np.hstack((self._x_gt, x_gt))
-        self._x_est = np.hstack((self._x_est, x_est))
+        self._x_est = np.hstack((self._x_est, self._bayesian_filter.x_est))
         self._x_noised = np.hstack((self._x_noised, x_noised))
 
         plt.cla()
 
         if z is not None:
+            x_est = self._bayesian_filter.x_est
             for i in range(len(z[:, 0])):
-                plt.plot([x_gt[0, 0], z[i, 1]], [x_gt[1, 0], z[i, 2]], '-g')
+                plt.plot([x_est[0, 0], z[i, 1]], [x_est[1, 0], z[i, 2]], '-g')
 
         plt.plot(self._landmarks[:, 0], self._landmarks[:, 1], '*g')
 
@@ -108,8 +112,10 @@ class PlotterWithLandMark(Plotter):
                  self._x_noised[1, :].flatten(), '-r')
         plt.plot(self._x_est[0, :].flatten(),
                  self._x_est[1, :].flatten(), '-g')
+        px, _ = self._bayesian_filter.particles
         plt.plot(px[0, :], px[1, :], ".g")
-        self._plot_covariance_ellipse(x_est, x_cov_est)
+        self._plot_covariance_ellipse(
+            self._bayesian_filter.x_est, self._bayesian_filter.cov_est)
         plt.axis('equal')
         plt.grid(True)
         plt.pause(0.001)

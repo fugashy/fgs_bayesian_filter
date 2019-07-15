@@ -36,6 +36,9 @@ class BayesianFilter():
         self._motion_model = motion_model
         self._obs_model = obs_model
 
+        self._x_est = np.zeros(motion_model.shape)
+        self._cov_est = np.eye(motion_model.shape[0])
+
     def bayesian_update(self, u, z=None):
         u"""ベイズフィルタ更新
 
@@ -43,6 +46,17 @@ class BayesianFilter():
         """
         raise NotImplementedError('To developers, inherit this class')
 
+    @property
+    def x_est(self):
+        return self._x_est
+
+    @property
+    def cov_est(self):
+        return self._cov_est
+
+    @property
+    def obs_model(self):
+        return self._obs_model
 
 class ExtendedKalmanFilter(BayesianFilter):
     u"""EKFの更新を行う."""
@@ -50,8 +64,6 @@ class ExtendedKalmanFilter(BayesianFilter):
     def __init__(self, command_model, motion_model, obs_model):
         u"""推定値の初期化と各種モデルの保持."""
         super().__init__(command_model, motion_model, obs_model)
-        self._x_est = np.zeros(motion_model.shape)
-        self._cov_est = np.eye(motion_model.shape[0])
 
     def bayesian_update(self, u, z=None):
         u"""ベイズフィルタ更新を行う."""
@@ -110,9 +122,6 @@ class UnscentedKalmanFilter(BayesianFilter):
         self._wc = 0.
         self._gamma = 0.
         self._init_param(motion_model.shape[0], alpha, beta, kappa)
-
-        self._x_est = np.zeros(motion_model.shape)
-        self._cov_est = np.eye(motion_model.shape[0])
 
     def bayesian_update(self, u, z):
         x_pre = deepcopy(self._x_est)
@@ -215,10 +224,6 @@ class ParticleFilter(BayesianFilter):
         self._px = np.zeros((self._motion_model.shape[0], p_num))
         self._pw = np.zeros((1, p_num)) + 1.0 / p_num
 
-        # 状態の初期化
-        # 分散共分散については過去のものを考慮せずに毎回計算するので保持しない
-        self._x_est = np.zeros(self._motion_model.shape)
-
     def bayesian_update(self, u, z=None):
         # 設定されたパーティクル数だけ実施する
         for ip in range(self._p_num):
@@ -258,13 +263,13 @@ class ParticleFilter(BayesianFilter):
         # 加重総和
         # 正規化済みなのでスケールは変わらない
         self._x_est = self._px @ self._pw.T
-        cov_est = self._calc_cov()
+        self._cov_est = self._calc_cov()
 
         # リサンプリングする
         # ぶっちゃけわからん
         self._resampling()
 
-        return self._x_est, cov_est
+        return self._x_est, self._cov_est
 
     @property
     def particles(self):
@@ -274,7 +279,7 @@ class ParticleFilter(BayesianFilter):
         cov = np.zeros(
             (self._motion_model.shape[0], self._motion_model.shape[0]))
         for i in range(self._px.shape[1]):
-            dx = (self._px[:, i] - self._x_est)
+            dx = self._px[:, i] - self._x_est
             cov += self._pw[0, i] * (dx @ dx.T)
 
         # 原典(python robotics)では速度のばらつきを無視している
