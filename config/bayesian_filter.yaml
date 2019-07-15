@@ -2,16 +2,16 @@ command_model:
   type: velocity_and_yaw_const
   vel: 1.0
   yaw_rate: 0.1
-  std_dev: [1.0, 0.6981317007977318]  # 40.0deg
+  std_dev: [0.1, 0.6981317007977318]  # 40.0deg
 
 motion_model:
   type: circle2d
   dt: 0.1
-  std_dev: [0.1, 0.1, 0.01745329251994329, 1.0]
+  std_dev: [0.1, 0.1, 0.6981317007977318, 0.1]
 
 observation_model:
   type: gps_xy
-  std_dev: [1.0, 1.0]
+  std_dev: [0.5, 0.5]
 # type: gps_xyY
 # std_dev: [0.2, 0.2, 0.1]
 # type: rfid_xyd
@@ -21,6 +21,13 @@ observation_model:
 #           [10.0, 10.0],
 #           [0.0, 15.0],
 #           [-5.0, 20.0]]
+
+# パーティクルフィルタには未対応
+sampler:
+  type: uniform_dist
+  prob: 0.50
+# type: time_based_interval
+# interval_sec: 1.0
 
 bayesian_filter:
   type: ekf
