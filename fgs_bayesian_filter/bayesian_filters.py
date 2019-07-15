@@ -36,7 +36,11 @@ class BayesianFilter():
         self._motion_model = motion_model
         self._obs_model = obs_model
 
-    def bayesian_update(self, u, z):
+    def bayesian_update(self, u, z=None):
+        u"""ベイズフィルタ更新
+
+        操作は必須，観測はできない場合があるとする
+        """
         raise NotImplementedError('To developers, inherit this class')
 
 
@@ -46,14 +50,14 @@ class ExtendedKalmanFilter(BayesianFilter):
     def __init__(self, command_model, motion_model, obs_model):
         u"""推定値の初期化と各種モデルの保持."""
         super().__init__(command_model, motion_model, obs_model)
-        self.x_est = np.zeros(motion_model.shape)
-        self.cov_est = np.eye(motion_model.shape[0])
+        self._x_est = np.zeros(motion_model.shape)
+        self._cov_est = np.eye(motion_model.shape[0])
 
-    def bayesian_update(self, u, z):
+    def bayesian_update(self, u, z=None):
         u"""ベイズフィルタ更新を行う."""
         # 持っている状態を事前のものとする
-        x_pre = deepcopy(self.x_est)
-        cov_pre = deepcopy(self.cov_est)
+        x_pre = deepcopy(self._x_est)
+        cov_pre = deepcopy(self._cov_est)
 
         # 予測predict
         # 前回の状態を元に操作を与えた場合の状態
@@ -62,6 +66,13 @@ class ExtendedKalmanFilter(BayesianFilter):
         x_jacob = self._motion_model.calc_motion_jacob(x_pred, u)
         # 分散の予測
         cov_pred = x_jacob @ cov_pre @ x_jacob.T + self._motion_model.cov
+
+        # 観測できない場合は予測のみ
+        # 分散は増えていく
+        if z is None:
+            self._x_est = x_pred
+            self._cov_est = cov_pred
+            return self._x_est, self._cov_est
 
         # 更新update
         # 計測モデルのヤコビ行列
@@ -75,11 +86,11 @@ class ExtendedKalmanFilter(BayesianFilter):
         # 実際の計測との差
         z_diff = z - z_pred
         # 状態の修正
-        self.x_est = x_pred + K @ z_diff
+        self._x_est = x_pred + K @ z_diff
         # 状態のばらつきの修正
-        self.cov_est = (np.eye(len(self.x_est)) - K @ z_jacob) @ cov_pred
+        self._cov_est = (np.eye(len(self._x_est)) - K @ z_jacob) @ cov_pred
 
-        return self.x_est, self.cov_est
+        return self._x_est, self._cov_est
 
 
 class UnscentedKalmanFilter(BayesianFilter):
@@ -113,6 +124,11 @@ class UnscentedKalmanFilter(BayesianFilter):
         x_pred = (self._wm @ sigma.T).T
         cov_pred = self._calc_sigma_cov(
             x_pred, sigma, self._motion_model.cov)
+
+        if z is None:
+            self._x_est = x_pred
+            self._cov_est = cov_pred
+            return self._x_est, self._cov_est
 
         #  Update
         z_pred = self._obs_model.observe_at(x_pred)
@@ -203,7 +219,7 @@ class ParticleFilter(BayesianFilter):
         # 分散共分散については過去のものを考慮せずに毎回計算するので保持しない
         self._x_est = np.zeros(self._motion_model.shape)
 
-    def bayesian_update(self, u, z):
+    def bayesian_update(self, u, z=None):
         # 設定されたパーティクル数だけ実施する
         for ip in range(self._p_num):
             # 操作モデルをランダムに揺さぶり，そのときの状態を計算する
@@ -217,15 +233,19 @@ class ParticleFilter(BayesianFilter):
 
             # そのパーティクルの尤度を更新
             pw = self._pw[0, ip]
-            for iz in range(len(zp[:, 0])):
-                try:
-                    # 事前に観測したときの距離との差
-                    # パーティクルから観測すると観測できなかった点も含まれる場合がある
-                    # そのためアクセスエラーはスキップする
-                    likelihood = self._obs_model.gauss_likelihood(zp[iz], z[iz])
-                except IndexError:
-                    continue
-                pw *= likelihood
+
+            # 観測がない場合は尤度の計算ができない
+            # よって重みが更新されない
+            if z is not None:
+                for iz in range(len(zp[:, 0])):
+                    try:
+                        # 事前に観測したときの距離との差
+                        # パーティクルから観測すると観測できなかった点も含まれる場合がある
+                        # そのためアクセスエラーはスキップする
+                        likelihood = self._obs_model.gauss_likelihood(zp[iz], z[iz])
+                    except IndexError:
+                        continue
+                    pw *= likelihood
 
             # パーティクルの更新
             self._px[:, ip] = p[:, 0]
