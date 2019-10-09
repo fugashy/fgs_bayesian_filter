@@ -16,7 +16,7 @@ A package that provide samples attempting localization based on bayesian filters
 
 # My environment
 
-- OS: MacOS Mojave 10.14.5 (18F203)
+- OS: MacOS Catalina 10.15
 - ROS2 dashing diademata (20190531)
 
 # How to use
